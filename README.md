@@ -91,3 +91,14 @@ The production schema is already applied remotely. The migration SQL files and A
 
 ## First administrator
 The database has an Auth trigger configured to assign the `admin` role only to the account whose Auth email is exactly `kingojoe2000cyber@gmail.com`. As of the latest check, that email has not yet registered in Supabase Auth (zero matching Auth users), so no staff/admin record has been created yet. To activate it, invite this email in Supabase Dashboard → Authentication → Users → Invite user and complete the email verification/sign-in flow. Do not share passwords or secret API keys in GitHub.
+
+
+## Android-to-Supabase API layer (added)
+The Android source now includes:
+- `data/SupabaseApi.kt`: Retrofit endpoints for active brands, categories and products, Supabase Auth sign-up/sign-in/sign-out, customer order history and the authenticated `place_customer_order` RPC.
+- `data/SupabaseShopRepository.kt`: application-facing repository methods and basic input checks for customer registration and sign-in.
+- The Android client uses the Supabase **publishable** key only. No service-role or secret key is included in the Android source.
+
+**Integration status:** The API and repository layer has been committed, but the existing Compose screens have not yet been switched from in-memory sample data to repository-backed state. Session persistence, sign-in/register screens, live catalogue rendering, real order placement, staff-role-gated admin/POS screens and end-to-end verification remain outstanding. The database currently has no product rows, so product data must be loaded before the shop can display the real catalogue.
+
+**Do not use the current APK/starter as a production store yet.** Electronic payments also require a payment provider and server-side verification/webhook implementation; selecting Mobile Money or card in the current checkout does not collect money.
