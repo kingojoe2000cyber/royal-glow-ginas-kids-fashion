@@ -64,7 +64,7 @@ The Android app must use the project's **publishable** key only. Never put a Sup
 1. Integrate the Supabase Kotlin SDK into Android; replace sample catalogue and in-memory checkout/POS with live data.
 2. Implement customer sign-up/login, profile and saved delivery addresses.
 3. Connect the checkout UI to `place_customer_order` and add customer order history/tracking.
-4. Bootstrap the first administrator account and assign staff roles securely.
+4. Invite the first administrator account from Supabase Dashboard → Authentication → Users → Invite user, then confirm the email. The Auth trigger promotes only `kingojoe2000cyber@gmail.com` to admin.
 5. Implement POS posting, purchase receiving and inventory updates as atomic server-side operations.
 6. Connect a Ghana-supported payment provider (Hubtel or Paystack) through server-side payment initiation and webhook verification. Do not treat a client callback as proof of payment.
 7. Complete delivery pricing/zones, notifications, refund flows, backups and production hardening.
@@ -85,5 +85,9 @@ The live Supabase project has recorded the following migrations:
 - `20261106213840_tighten_rls_private_pricing_and_staff_access`
 - `20261106213851_finalise_order_policy_and_private_payment_rls`
 - `20261106213944_secure_customer_checkout_and_profile_creation`
+- `20261106214610_bootstrap_primary_administrator_email`
 
 The production schema is already applied remotely. The migration SQL files and Android client configuration are being brought under source control as part of the backend integration work.
+
+## First administrator
+The database has an Auth trigger configured to assign the `admin` role only to the account whose Auth email is exactly `kingojoe2000cyber@gmail.com`. As of the latest check, that email has not yet registered in Supabase Auth (zero matching Auth users), so no staff/admin record has been created yet. To activate it, invite this email in Supabase Dashboard → Authentication → Users → Invite user and complete the email verification/sign-in flow. Do not share passwords or secret API keys in GitHub.
