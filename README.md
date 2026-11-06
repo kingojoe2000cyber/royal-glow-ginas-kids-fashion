@@ -84,6 +84,6 @@ The live Supabase project has recorded the following migrations:
 - `20261106213753_initial_shop_commerce_schema`
 - `20261106213840_tighten_rls_private_pricing_and_staff_access`
 - `20261106213851_finalise_order_policy_and_private_payment_rls`
-- `2026110621xxxx_secure_customer_checkout_and_profile_creation`
+- `20261106213944_secure_customer_checkout_and_profile_creation`
 
 The production schema is already applied remotely. The migration SQL files and Android client configuration are being brought under source control as part of the backend integration work.
