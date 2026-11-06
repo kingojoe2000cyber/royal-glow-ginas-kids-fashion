@@ -100,7 +100,7 @@ interface SupabaseApi {
     @GET("rest/v1/products")
     suspend fun getManagedProducts(
         @Query("select") select: String =
-            "id,brand_id,category_id,sku,name,slug,description,condition,age_min_months,age_max_months,size_label,colour,price,image_url,is_active,is_featured,brands(name),categories(name)",
+            "id,brand_id,category_id,sku,name,slug,description,condition,age_min_months,age_max_months,size_label,colour,price,image_url,is_active,is_featured,brands(name),categories(name),inventory(quantity_on_hand,reorder_level)",
         @Query("order") order: String = "created_at.desc",
         @Header("Authorization") authorization: String
     ): List<ShopProductDto>
@@ -188,10 +188,16 @@ data class ShopProductDto(
     @SerializedName("is_active") val isActive: Boolean,
     @SerializedName("is_featured") val isFeatured: Boolean,
     val brands: EmbeddedNameDto?,
-    val categories: EmbeddedNameDto?
+    val categories: EmbeddedNameDto?,
+    val inventory: EmbeddedInventoryDto? = null
 )
 
 data class EmbeddedNameDto(val name: String?)
+
+data class EmbeddedInventoryDto(
+    @SerializedName("quantity_on_hand") val quantityOnHand: Int,
+    @SerializedName("reorder_level") val reorderLevel: Int
+)
 
 data class StaffRoleDto(val role: String, @SerializedName("is_active") val isActive: Boolean)
 
