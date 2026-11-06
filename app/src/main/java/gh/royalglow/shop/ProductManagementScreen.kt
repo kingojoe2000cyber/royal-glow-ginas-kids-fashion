@@ -339,6 +339,7 @@ fun ProductManagementScreen(onCatalogChanged: () -> Unit) {
                                     val saved = repository.saveProduct(accessToken, editingProductId, record)
                                     val targetId = editingProductId ?: saved?.id
                                         ?: error("The product may have saved, but the server did not return its ID.")
+                                    if (editingProductId == null) editingProductId = targetId
                                     repository.saveInventory(
                                         accessToken,
                                         targetId,
@@ -377,6 +378,7 @@ fun ProductManagementScreen(onCatalogChanged: () -> Unit) {
                                 "${brands.firstOrNull { it.id == product.brandId }?.name ?: "Shop"} • GHS ${"%.2f".format(product.price)}",
                                 style = MaterialTheme.typography.bodySmall
                             )
+                            Text("Stock: ${product.inventory?.quantityOnHand ?: 0}", style = MaterialTheme.typography.bodySmall)
                             Text(if (product.isActive && product.price > 0) "Published" else "Draft / hidden from shoppers", color = if (product.isActive && product.price > 0) AdminRoyal else AdminPink, style = MaterialTheme.typography.bodySmall)
                             TextButton(onClick = {
                                 editingProductId = product.id
@@ -385,6 +387,8 @@ fun ProductManagementScreen(onCatalogChanged: () -> Unit) {
                                 productName = product.name
                                 sku = product.sku.orEmpty()
                                 description = product.description.orEmpty()
+                                stockText = product.inventory?.quantityOnHand?.toString() ?: "0"
+                                reorderText = product.inventory?.reorderLevel?.toString() ?: "0"
                                 priceText = product.price.takeIf { it > 0 }?.toString().orEmpty()
                                 condition = product.condition
                                 sizeLabel = product.sizeLabel.orEmpty()
