@@ -25,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import gh.royalglow.shop.data.SupabaseShopRepository
+import coil.compose.AsyncImage
 
 private val Royal = Color(0xFF7B176B)
 private val Pink = Color(0xFFE91E83)
@@ -32,7 +33,7 @@ private val Gold = Color(0xFFD6A72C)
 private val Ink = Color(0xFF29132D)
 private val money = NumberFormat.getCurrencyInstance(Locale("en", "GH")).apply { currency = java.util.Currency.getInstance("GHS") }
 
-data class ShopProduct(val id: String, val name: String, val brand: String, val category: String, val price: Double, val stock: Int)
+data class ShopProduct(val id: String, val name: String, val brand: String, val category: String, val price: Double, val stock: Int, val imageUrl: String? = null)
 data class CartLine(val product: ShopProduct, val quantity: Int)
 
 private val catalog = listOf(
@@ -82,7 +83,8 @@ fun RoyalGlowApp() {
                         brand = item.brands?.name ?: "Shop",
                         category = item.categories?.name ?: "General",
                         price = item.price,
-                        stock = 0
+                        stock = 0,
+                        imageUrl = item.imageUrl
                     )
                 }
         } catch (e: Throwable) {
@@ -177,7 +179,13 @@ private fun ShopScreen(
             }
         }
         items(products) { p -> Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) { Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(68.dp).background(Color(0xFFFCE4F1), RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) { Icon(if (p.category == "Beauty" || p.category == "Girlie Goods") Icons.Default.AutoAwesome else Icons.Default.Checkroom, null, tint = Royal, modifier = Modifier.size(32.dp)) }
+            Box(Modifier.size(88.dp, 104.dp).background(Color(0xFFFCE4F1), RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
+                if (!p.imageUrl.isNullOrBlank()) {
+                    AsyncImage(model = p.imageUrl, contentDescription = p.name, modifier = Modifier.fillMaxSize())
+                } else {
+                    Icon(if (p.category == "Beauty" || p.category == "Girlie Goods") Icons.Default.AutoAwesome else Icons.Default.Checkroom, null, tint = Royal, modifier = Modifier.size(32.dp))
+                }
+            }
             Spacer(Modifier.width(12.dp)); Column(Modifier.weight(1f)) { Text(p.name, fontWeight = FontWeight.Bold, color = Ink); Text("${p.brand} • ${p.category}", fontSize = 11.sp, color = Color.Gray); Text(money.format(p.price), color = Royal, fontWeight = FontWeight.Bold); Text("Available in store", fontSize = 10.sp, color = Color.Gray) }
             Button(onClick = { onAdd(p) }, contentPadding = PaddingValues(horizontal = 12.dp)) { Icon(Icons.Default.Add, null); Text("Add") }
         } } }
