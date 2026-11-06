@@ -9,7 +9,13 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PATCH
+import retrofit2.http.PUT
+import retrofit2.http.Path
+import retrofit2.http.Headers
 import retrofit2.http.Query
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import java.util.concurrent.TimeUnit
 
 /**
@@ -84,6 +90,53 @@ interface SupabaseApi {
     @POST("auth/v1/logout")
     suspend fun signOut(@Header("Authorization") authorization: String)
 
+    @GET("rest/v1/staff_members")
+    suspend fun getMyStaffRole(
+        @Query("select") select: String = "role,is_active",
+        @Query("user_id") userId: String,
+        @Header("Authorization") authorization: String
+    ): List<StaffRoleDto>
+
+    @GET("rest/v1/products")
+    suspend fun getManagedProducts(
+        @Query("select") select: String =
+            "id,brand_id,category_id,sku,name,slug,description,condition,age_min_months,age_max_months,size_label,colour,price,image_url,is_active,is_featured,brands(name),categories(name)",
+        @Query("order") order: String = "created_at.desc",
+        @Header("Authorization") authorization: String
+    ): List<ShopProductDto>
+
+    @Headers("Prefer: return=representation")
+    @POST("rest/v1/products")
+    suspend fun createProduct(
+        @Body product: ProductWriteDto,
+        @Header("Authorization") authorization: String
+    ): List<ShopProductDto>
+
+    @Headers("Prefer: return=minimal")
+    @PATCH("rest/v1/products")
+    suspend fun updateProduct(
+        @Query("id") productId: String,
+        @Body product: ProductWriteDto,
+        @Header("Authorization") authorization: String
+    ): ResponseBody
+
+    @Headers("Prefer: resolution=merge-duplicates,return=minimal")
+    @POST("rest/v1/inventory")
+    suspend fun upsertInventory(
+        @Query("on_conflict") onConflict: String = "product_id",
+        @Body inventory: InventoryWriteDto,
+        @Header("Authorization") authorization: String
+    ): ResponseBody
+
+    @PUT("storage/v1/object/product-images/{objectPath}")
+    suspend fun uploadProductImage(
+        @Path(value = "objectPath", encoded = true) objectPath: String,
+        @Body imageBytes: RequestBody,
+        @Header("Authorization") authorization: String,
+        @Header("Content-Type") contentType: String,
+        @Header("x-upsert") upsert: String = "false"
+    ): ResponseBody
+
     @POST("rest/v1/rpc/place_customer_order")
     suspend fun placeCustomerOrder(
         @Body request: PlaceCustomerOrderRequest,
@@ -139,6 +192,30 @@ data class ShopProductDto(
 )
 
 data class EmbeddedNameDto(val name: String?)
+
+data class StaffRoleDto(val role: String, @SerializedName("is_active") val isActive: Boolean)
+
+data class ProductWriteDto(
+    @SerializedName("brand_id") val brandId: String,
+    @SerializedName("category_id") val categoryId: String?,
+    val sku: String?,
+    val name: String,
+    val description: String?,
+    val condition: String,
+    @SerializedName("size_label") val sizeLabel: String?,
+    val colour: String?,
+    val price: Double,
+    @SerializedName("image_url") val imageUrl: String?,
+    @SerializedName("is_active") val isActive: Boolean,
+    @SerializedName("is_featured") val isFeatured: Boolean = false
+)
+
+data class InventoryWriteDto(
+    @SerializedName("product_id") val productId: String,
+    @SerializedName("quantity_on_hand") val quantityOnHand: Int,
+    @SerializedName("quantity_reserved") val quantityReserved: Int = 0,
+    @SerializedName("reorder_level") val reorderLevel: Int = 0
+)
 
 data class SignUpRequest(
     val email: String,
