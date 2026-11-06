@@ -102,3 +102,18 @@ The Android source now includes:
 **Integration status:** The API and repository layer has been committed, but the existing Compose screens have not yet been switched from in-memory sample data to repository-backed state. Session persistence, sign-in/register screens, live catalogue rendering, real order placement, staff-role-gated admin/POS screens and end-to-end verification remain outstanding. The database currently has no product rows, so product data must be loaded before the shop can display the real catalogue.
 
 **Do not use the current APK/starter as a production store yet.** Electronic payments also require a payment provider and server-side verification/webhook implementation; selecting Mobile Money or card in the current checkout does not collect money.
+
+
+## Live catalogue and product upload (added)
+The customer storefront now requests active Supabase products and hides products whose selling price is zero. It supports brand filtering, name/category search, refresh, GHS price display and product photos from Supabase Storage.
+
+The Admin tab now includes a staff sign-in gate (admin, manager and inventory roles) and a product management form:
+- Select Royal Glow or Gina's Kids Fashion and an optional category.
+- Add the product name, SKU, description, condition, size, colour, opening quantity and reorder alert.
+- Select a product photo from the Android device or enter an existing image URL.
+- Save a product with no price as an unpublished draft. Enter a positive GHS selling price later and then publish it.
+- Edit existing products and prices; set storefront featured status.
+
+A database check constraint now requires every active/published product to have a positive price. Product image uploads use the existing public-read, staff-write `product-images` bucket. Product and inventory writes are both enforced by Supabase Row Level Security.
+
+**Current limitations:** the staff access token currently remains in application memory only; staff need to sign in again after an app restart. The customer order flow, payment processing, POS persistence and staff reporting are not yet production-ready. The current CI workflow had failed before Gradle compilation because the Android setup action requested the retired SDK package `tools`; the workflow has now been corrected to request only `platform-tools`, and a new build is being triggered.
