@@ -1,5 +1,9 @@
 package gh.royalglow.shop.data
 
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.util.UUID
+
 /**
  * Thin application-facing layer over the Supabase REST/Auth endpoints.
  *
@@ -17,6 +21,62 @@ class SupabaseShopRepository(
 
     suspend fun loadProducts(brandId: String? = null): List<ShopProductDto> =
         api.getProducts(brandId = brandId?.let { "eq.$it" })
+
+    suspend fun loadManagedProducts(accessToken: String): List<ShopProductDto> =
+        api.getManagedProducts(authorization = bearer(accessToken))
+
+    suspend fun staffRole(userId: String, accessToken: String): StaffRoleDto? =
+        api.getMyStaffRole(userId = "eq.$userId", authorization = bearer(accessToken))
+            .firstOrNull { it.isActive }
+
+    suspend fun saveProduct(
+        accessToken: String,
+        productId: String?,
+        product: ProductWriteDto
+    ): ShopProductDto? {
+        val token = bearer(accessToken)
+        return if (productId == null) {
+            api.createProduct(product, token).firstOrNull()
+        } else {
+            api.updateProduct(productId = "eq.$productId", product = product, authorization = token)
+            null
+        }
+    }
+
+    suspend fun saveInventory(
+        accessToken: String,
+        productId: String,
+        quantityOnHand: Int,
+        reorderLevel: Int = 0
+    ) {
+        require(quantityOnHand >= 0) { "Stock quantity cannot be negative." }
+        api.upsertInventory(
+            inventory = InventoryWriteDto(
+                productId = productId,
+                quantityOnHand = quantityOnHand,
+                reorderLevel = reorderLevel
+            ),
+            authorization = bearer(accessToken)
+        )
+    }
+
+    suspend fun uploadProductImage(
+        accessToken: String,
+        fileName: String,
+        bytes: ByteArray,
+        contentType: String
+    ): String {
+        require(bytes.isNotEmpty()) { "The selected image is empty." }
+        val safeName = fileName.replace(Regex("[^A-Za-z0-9._/-]"), "_")
+        val objectPath = "products/${UUID.randomUUID()}-$safeName"
+        api.uploadProductImage(
+            objectPath = objectPath,
+            imageBytes = bytes.toRequestBody(contentType.toMediaType()),
+            authorization = bearer(accessToken),
+            contentType = contentType
+        )
+        return "${SupabaseConfig.BASE_URL}storage/v1/object/public/product-images/$objectPath"
+    }
 
     suspend fun registerCustomer(
         fullName: String,
