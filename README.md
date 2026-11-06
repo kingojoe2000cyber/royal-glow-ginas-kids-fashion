@@ -44,7 +44,7 @@ The project currently contains these business areas:
 - POS sales and POS sale items
 - Expenses, audit logs and app settings
 
-Row Level Security is enabled on all 21 public tables. Public access is read-only for active brands, categories and products. Customer-owned records are scoped to the signed-in customer. Staff permissions are role-based. Provider payment payloads are stored in a non-exposed `private` schema. The security advisor returned no security lints after the initial setup.
+Row Level Security is enabled on all 21 public tables. Public access is read-only for active brands, categories and products. Customer-owned records are scoped to the signed-in customer. Staff permissions are role-based. Provider payment payloads are stored in a non-exposed `private` schema. The security advisor reports one intentional warning: the authenticated-only `place_customer_order` RPC uses `SECURITY DEFINER` so it can reserve inventory and create an order atomically. Its function body validates `auth.uid()`, prices from the database, checks stock under row locks, has a fixed empty search path, and has EXECUTE revoked from `public` and `anon`. Re-review this decision during production security testing.
 
 ### Secure checkout
 The database function `public.place_customer_order(...)` is available to authenticated customers. It:
